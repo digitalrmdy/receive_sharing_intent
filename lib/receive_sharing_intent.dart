@@ -142,6 +142,8 @@ class ReceiveSharingIntent {
 }
 
 class SharedMediaFile {
+  final String id;
+
   /// Image or Video path.
   /// NOTE. for iOS only the file is always copied
   final String path;
@@ -155,10 +157,11 @@ class SharedMediaFile {
   /// Whether its a video or image
   final SharedMediaType type;
 
-  SharedMediaFile(this.path, this.thumbnail, this.duration, this.type);
+  SharedMediaFile(this.id, this.path, this.thumbnail, this.duration, this.type);
 
   SharedMediaFile.fromJson(Map<String, dynamic> json)
-      : path = json['path'],
+      : id = json['id'],
+        path = json['path'],
         thumbnail = json['thumbnail'],
         duration = json['duration'],
         type = SharedMediaType.values[json['type']];

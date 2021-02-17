@@ -145,11 +145,13 @@ class ReceiveSharingIntentPlugin : FlutterPlugin, ActivityAware, MethodCallHandl
                 val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
                 val path = FileDirectory.getAbsolutePath(applicationContext, uri)
                 if (path != null) {
+                    val id = getIdentifier(uri)
                     val type = getMediaType(path)
                     val thumbnail = getThumbnail(path, type)
                     val duration = getDuration(path, type)
                     JSONArray().put(
                             JSONObject()
+                                    .put("id", id)
                                     .put("path", path)
                                     .put("type", type.ordinal)
                                     .put("thumbnail", thumbnail)
@@ -160,12 +162,14 @@ class ReceiveSharingIntentPlugin : FlutterPlugin, ActivityAware, MethodCallHandl
             Intent.ACTION_SEND_MULTIPLE -> {
                 val uris = intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
                 val value = uris?.mapNotNull { uri ->
+                    val id = getIdentifier(uri)
                     val path = FileDirectory.getAbsolutePath(applicationContext, uri)
                             ?: return@mapNotNull null
                     val type = getMediaType(path)
                     val thumbnail = getThumbnail(path, type)
                     val duration = getDuration(path, type)
                     return@mapNotNull JSONObject()
+                            .put("id", id)
                             .put("path", path)
                             .put("type", type.ordinal)
                             .put("thumbnail", thumbnail)
@@ -175,6 +179,12 @@ class ReceiveSharingIntentPlugin : FlutterPlugin, ActivityAware, MethodCallHandl
             }
             else -> null
         }
+    }
+
+    private fun getIdentifier(uri: Uri): String? {
+        val path = uri.path
+        val startIndex = path.lastIndexOf('/') + 1
+        return path.substring(startIndex)
     }
 
     private fun getMediaType(path: String?): MediaType {

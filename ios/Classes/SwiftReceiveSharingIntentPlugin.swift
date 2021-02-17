@@ -87,12 +87,12 @@ public class SwiftReceiveSharingIntentPlugin: NSObject, FlutterPlugin, FlutterSt
                         }
                         if ($0.type == .video && $0.thumbnail != nil) {
                             let thumbnail = getAbsolutePath(for: $0.thumbnail!)
-                            return SharedMediaFile.init(path: path, thumbnail: thumbnail, duration: $0.duration, type: $0.type)
+                            return SharedMediaFile.init(id: $0.id, path: path, thumbnail: thumbnail, duration: $0.duration, type: $0.type)
                         } else if ($0.type == .video && $0.thumbnail == nil) {
-                            return SharedMediaFile.init(path: path, thumbnail: nil, duration: $0.duration, type: $0.type)
+                            return SharedMediaFile.init(id: $0.id, path: path, thumbnail: nil, duration: $0.duration, type: $0.type)
                         }
-                        
-                        return SharedMediaFile.init(path: path, thumbnail: nil, duration: $0.duration, type: $0.type)
+
+                        return SharedMediaFile.init(id: $0.id, path: path, thumbnail: nil, duration: $0.duration, type: $0.type)
                     }
                     latestMedia = sharedMediaFiles
                     if(setInitialData) {
@@ -108,7 +108,7 @@ public class SwiftReceiveSharingIntentPlugin: NSObject, FlutterPlugin, FlutterSt
                         guard let path = getAbsolutePath(for: $0.path) else {
                             return nil
                         }
-                        return SharedMediaFile.init(path: $0.path, thumbnail: nil, duration: nil, type: $0.type)
+                        return SharedMediaFile.init(id: $0.id, path: path, thumbnail: nil, duration: nil, type: $0.type)
                     }
                     latestMedia = sharedMediaFiles
                     if(setInitialData) {
@@ -141,8 +141,8 @@ public class SwiftReceiveSharingIntentPlugin: NSObject, FlutterPlugin, FlutterSt
         latestText = nil
         return false
     }
-    
-    
+
+
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         if (arguments as! String? == "media") {
             eventSinkMedia = events;
@@ -153,7 +153,7 @@ public class SwiftReceiveSharingIntentPlugin: NSObject, FlutterPlugin, FlutterSt
         }
         return nil;
     }
-    
+
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
         if (arguments as! String? == "media") {
             eventSinkMedia = nil;
@@ -164,7 +164,7 @@ public class SwiftReceiveSharingIntentPlugin: NSObject, FlutterPlugin, FlutterSt
         }
         return nil;
     }
-    
+
     private func getAbsolutePath(for identifier: String) -> String? {
         if (identifier.starts(with: "file://") || identifier.starts(with: "/var/mobile/Media") || identifier.starts(with: "/private/var/mobile")) {
             return identifier.replacingOccurrences(of: "file://", with: "")
@@ -176,7 +176,7 @@ public class SwiftReceiveSharingIntentPlugin: NSObject, FlutterPlugin, FlutterSt
         let (url, _) = getFullSizeImageURLAndOrientation(for: phAsset!)
         return url
     }
-    
+
     private func getFullSizeImageURLAndOrientation(for asset: PHAsset)-> (String?, Int) {
         var url: String? = nil
         var orientation: Int = 0
@@ -191,12 +191,12 @@ public class SwiftReceiveSharingIntentPlugin: NSObject, FlutterPlugin, FlutterSt
         semaphore.wait()
         return (url, orientation)
     }
-    
+
     private func decode(data: Data) -> [SharedMediaFile] {
         let encodedData = try? JSONDecoder().decode([SharedMediaFile].self, from: data)
         return encodedData!
     }
-    
+
     private func toJson(data: [SharedMediaFile]?) -> String? {
         if data == nil {
             return nil
@@ -205,22 +205,23 @@ public class SwiftReceiveSharingIntentPlugin: NSObject, FlutterPlugin, FlutterSt
         let json = String(data: encodedData!, encoding: .utf8)!
         return json
     }
-    
+
     class SharedMediaFile: Codable {
+        var id: String?;
         var path: String;
         var thumbnail: String?; // video thumbnail
         var duration: Double?; // video duration in milliseconds
         var type: SharedMediaType;
-        
-        
-        init(path: String, thumbnail: String?, duration: Double?, type: SharedMediaType) {
+
+        init(id: String?, path: String, thumbnail: String?, duration: Double?, type: SharedMediaType) {
+            self.id = id
             self.path = path
             self.thumbnail = thumbnail
             self.duration = duration
             self.type = type
         }
     }
-    
+
     enum SharedMediaType: Int, Codable {
         case image
         case video
